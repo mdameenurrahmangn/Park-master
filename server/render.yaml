@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: parkmaster-api
+    env: node
+    region: oregon # Or closest to your DB
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000 # Render assigns this automatically usually, but good to define
+      - key: MONGO_URI
+        sync: false # Set in Dashboard
+      - key: JWT_SECRET
+        generateValue: true # Set in Dashboard
+      - key: CLIENT_URL
+        sync: false # Set in Dashboard after Vercel deploy
