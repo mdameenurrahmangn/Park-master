@@ -15,8 +15,23 @@ const app = express();
 
 // Middleware
 // In server.js
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://park-master475.web.app',
+    'https://park-master475.firebaseapp.com'
+];
+if (process.env.CLIENT_URL) {
+    allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173', // Will be your vercel.app URL
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(o => origin.startsWith(o))) {
+            return callback(null, true);
+        }
+        return callback(null, true); // Allow production web origins
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
