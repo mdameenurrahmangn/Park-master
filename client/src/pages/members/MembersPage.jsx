@@ -118,7 +118,7 @@ export default function MembersPage() {
       >
         <div className="flex-1">
           <Input
-            placeholder="Search by name, phone, email, or aadhar..."
+            placeholder="Search by name, phone, or email..."
             icon={FiSearch}
             value={params.search}
             onChange={(e) => updateParams({ search: e.target.value })}

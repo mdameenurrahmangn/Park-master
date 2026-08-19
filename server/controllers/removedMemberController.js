@@ -47,4 +47,30 @@ const getRemovedMembers = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = { getRemovedMembers };
+// @desc    Delete single removed member record
+// @route   DELETE /api/removed-members/:id
+// @access  Private
+const deleteRemovedMember = asyncHandler(async (req, res) => {
+    const record = await RemovedMember.findByIdAndDelete(req.params.id);
+
+    if (!record) {
+        res.status(404);
+        throw new Error('Removed member record not found');
+    }
+
+    res.json({ message: 'Removed member record deleted successfully' });
+});
+
+// @desc    Clear all removed member records
+// @route   DELETE /api/removed-members
+// @access  Private
+const clearAllRemovedMembers = asyncHandler(async (req, res) => {
+    await RemovedMember.deleteMany({});
+    res.json({ message: 'All removed member records cleared successfully' });
+});
+
+module.exports = { 
+    getRemovedMembers, 
+    deleteRemovedMember, 
+    clearAllRemovedMembers 
+};

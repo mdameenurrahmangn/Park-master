@@ -2,17 +2,32 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiUserX, FiSearch, FiCalendar, FiDollarSign, FiInfo, 
-  FiTruck, FiChevronLeft, FiChevronRight, FiGrid, FiFileText 
+  FiTruck, FiChevronLeft, FiChevronRight, FiFileText, FiTrash2, FiAlertTriangle 
 } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import useRemovedMembers from '../../hooks/useRemovedMembers';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
 import { Skeleton } from '../../components/ui/Loader';
 import StatCard from '../../components/dashboard/StatCard';
 
 export default function RemovedMembersPage() {
-  const { removedMembers, loading, error, pagination, params, updateParams } = useRemovedMembers();
+  const { 
+    removedMembers, 
+    loading, 
+    error, 
+    pagination, 
+    params, 
+    updateParams,
+    deleteRemovedMember,
+    clearAllRemovedMembers
+  } = useRemovedMembers();
   const { page, pages, total } = pagination;
+
+  const [selectedRecordToDelete, setSelectedRecordToDelete] = useState(null);
+  const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Compute stat card numbers
   const totalRefund = useMemo(() => {
@@ -36,6 +51,33 @@ export default function RemovedMembersPage() {
     });
   };
 
+  const handleConfirmDeleteSingle = async () => {
+    if (!selectedRecordToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteRemovedMember(selectedRecordToDelete._id);
+      toast.success('Removed member record deleted');
+      setSelectedRecordToDelete(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete record');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleConfirmClearAll = async () => {
+    setIsDeleting(true);
+    try {
+      await clearAllRemovedMembers();
+      toast.success('All removed member records cleared');
+      setIsClearAllModalOpen(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to clear records');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -52,6 +94,15 @@ export default function RemovedMembersPage() {
             Historical records and departure details of former parking shed members.
           </p>
         </div>
+
+        {/* Clear All Button */}
+        <button
+          onClick={() => setIsClearAllModalOpen(true)}
+          disabled={total === 0 || loading}
+          className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg shadow-sm transition-colors self-start md:self-auto"
+        >
+          <FiTrash2 className="w-4 h-4 mr-2" /> Clear All Records
+        </button>
       </motion.div>
 
       {/* Summary Stat Cards */}
@@ -125,13 +176,16 @@ export default function RemovedMembersPage() {
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Remarks
                   </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {loading ? (
                   [...Array(5)].map((_, i) => (
                     <tr key={i}>
-                      <td colSpan="6" className="px-6 py-4">
+                      <td colSpan="7" className="px-6 py-4">
                         <Skeleton className="h-10" />
                       </td>
                     </tr>
@@ -202,12 +256,23 @@ export default function RemovedMembersPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate">
                           {record.remarks || '—'}
                         </td>
+
+                        {/* Individual Delete Action */}
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => setSelectedRecordToDelete(record)}
+                            className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                            title="Delete Removed Member Record"
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                          </button>
+                        </td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                    <td colSpan="7" className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
                       <FiInfo className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                       No removed member records found.
                     </td>
@@ -247,6 +312,81 @@ export default function RemovedMembersPage() {
           )}
         </div>
       )}
+
+      {/* Modal: Delete Single Record */}
+      <Modal
+        isOpen={Boolean(selectedRecordToDelete)}
+        onClose={() => setSelectedRecordToDelete(null)}
+        title="Delete Removed Member Record"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+            <FiAlertTriangle className="w-6 h-6 shrink-0" />
+            <p className="text-sm font-medium">This record will be permanently deleted from history.</p>
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Are you sure you want to delete the removed member record for{' '}
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {selectedRecordToDelete?.ownerName || selectedRecordToDelete?.member?.ownerName || 'Former Member'}
+            </span>?
+          </p>
+          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setSelectedRecordToDelete(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              loading={isDeleting}
+              onClick={handleConfirmDeleteSingle}
+            >
+              Delete Record
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal: Clear All Records */}
+      <Modal
+        isOpen={isClearAllModalOpen}
+        onClose={() => setIsClearAllModalOpen(false)}
+        title="Clear All Removed Member Records"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+            <FiAlertTriangle className="w-6 h-6 shrink-0" />
+            <p className="text-sm font-medium">All historical departure records will be deleted permanently.</p>
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Are you sure you want to clear <span className="font-bold text-red-600 dark:text-red-400">ALL ({total})</span> removed member records? This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsClearAllModalOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              loading={isDeleting}
+              onClick={handleConfirmClearAll}
+            >
+              Clear All Records
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

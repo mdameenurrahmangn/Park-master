@@ -21,7 +21,6 @@ export default function MemberFormModal({ isOpen, onClose, member, onSuccess }) 
         altPhone: member.altPhone,
         email: member.email,
         address: member.address,
-        aadharNumber: member.aadharNumber,
         joiningDate: new Date(member.joiningDate).toISOString().split('T')[0],
         monthlyRent: member.monthlyRent,
         advanceAmount: member.advanceAmount,
@@ -86,7 +85,6 @@ export default function MemberFormModal({ isOpen, onClose, member, onSuccess }) 
           <div className="md:col-span-2">
             <Input label="Address *" {...register('address', { required: 'Address is required' })} error={errors.address?.message} />
           </div>
-          <Input label="Aadhar Number *" {...register('aadharNumber', { required: 'Aadhar is required' })} error={errors.aadharNumber?.message} />
           <Input label="Joining Date *" type="date" {...register('joiningDate', { required: 'Joining date is required' })} error={errors.joiningDate?.message} />
           <Input label="Monthly Rent *" type="number" {...register('monthlyRent', { required: 'Rent is required', min: 0 })} error={errors.monthlyRent?.message} />
           <Input label="Advance Amount" type="number" {...register('advanceAmount')} />

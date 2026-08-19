@@ -43,6 +43,16 @@ export default function useRemovedMembers(initialParams = {}) {
     setParams(prev => ({ ...prev, ...newParams, page: newParams.page || 1 }));
   };
 
+  const deleteRemovedMember = async (id) => {
+    await api.delete(`/removed-members/${id}`);
+    await fetchRemovedMembers();
+  };
+
+  const clearAllRemovedMembers = async () => {
+    await api.delete('/removed-members');
+    await fetchRemovedMembers();
+  };
+
   return {
     removedMembers,
     loading,
@@ -50,6 +60,8 @@ export default function useRemovedMembers(initialParams = {}) {
     pagination,
     params,
     updateParams,
+    deleteRemovedMember,
+    clearAllRemovedMembers,
     refetch: fetchRemovedMembers
   };
 }
