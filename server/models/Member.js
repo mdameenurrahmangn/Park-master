@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const memberSchema = new mongoose.Schema({
     ownerName: { type: String, required: true, trim: true },
-    phone: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
     altPhone: { type: String },
     email: { type: String, lowercase: true, trim: true },
     address: { type: String, required: true },

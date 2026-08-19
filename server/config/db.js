@@ -20,13 +20,17 @@ const connectDB = async () => {
         const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log(`[ParkMaster] MongoDB Connected: ${conn.connection.host}`);
 
-        // Drop legacy unique index on aadharNumber if present in DB collection
+        // Drop legacy unique indexes on aadharNumber and phone if present in DB collection
         try {
             const memberCollection = conn.connection.collection('members');
             const indexes = await memberCollection.indexes();
             if (indexes.some(idx => idx.name === 'aadharNumber_1')) {
                 await memberCollection.dropIndex('aadharNumber_1');
                 console.log('[ParkMaster] Successfully dropped legacy aadharNumber_1 unique index');
+            }
+            if (indexes.some(idx => idx.name === 'phone_1')) {
+                await memberCollection.dropIndex('phone_1');
+                console.log('[ParkMaster] Successfully dropped legacy phone_1 unique index');
             }
         } catch (idxError) {
             console.warn('[ParkMaster] Index check/cleanup notice:', idxError.message);
