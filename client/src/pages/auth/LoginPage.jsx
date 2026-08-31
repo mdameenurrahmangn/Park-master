@@ -7,10 +7,12 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import ForgotPasswordModal from '../../components/auth/ForgotPasswordModal';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -62,7 +64,7 @@ export default function LoginPage() {
           })}
         />
 
-        <div>
+        <div className="relative">
           <Input
             label="Password"
             type={showPassword ? 'text' : 'password'}
@@ -92,7 +94,11 @@ export default function LoginPage() {
             />
             <span className="text-sm text-slate-600 dark:text-slate-400">Remember me</span>
           </label>
-          <button type="button" className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+          <button 
+            type="button" 
+            onClick={() => setIsForgotModalOpen(true)}
+            className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+          >
             Forgot password?
           </button>
         </div>
@@ -106,6 +112,11 @@ export default function LoginPage() {
       <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
         Protected by enterprise-grade security.
       </p>
+
+      <ForgotPasswordModal 
+        isOpen={isForgotModalOpen} 
+        onClose={() => setIsForgotModalOpen(false)} 
+      />
     </motion.div>
   );
-}
+}
