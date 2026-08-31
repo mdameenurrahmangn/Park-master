@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: parkmaster-api
+    name: parkmaster-server-475
     env: node
     region: oregon
     plan: free
